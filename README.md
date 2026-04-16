@@ -39,7 +39,7 @@ The system is separated into three distinct, containerized microservices:
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/mtepenner/uav-flight-optimizer.git](https://github.com/mtepenner/uav-flight-optimizer.git)
+   git clone https://github.com/mtepenner/uav-flight-optimizer.git
    cd uav-flight-optimizer
    ```
 
