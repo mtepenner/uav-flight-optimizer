@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  environment-service:
+    build: ./environment_service
+    ports:
+      - "8081:8081"
+    environment:
+      - PORT=8081
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8081/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - uav-net
+
+  routing-engine:
+    build: ./routing_engine
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT_SERVICE_URL=http://environment-service:8081
+    depends_on:
+      environment-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - uav-net
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_MAPBOX_TOKEN=${MAPBOX_TOKEN:-pk.placeholder}
+    depends_on:
+      routing-engine:
+        condition: service_healthy
+    networks:
+      - uav-net
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - uav-net
+
+networks:
+  uav-net:
+    driver: bridge
+
+volumes:
+  redis-data:

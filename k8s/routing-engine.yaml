@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: routing-engine
+  labels:
+    app: routing-engine
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: routing-engine
+  template:
+    metadata:
+      labels:
+        app: routing-engine
+    spec:
+      containers:
+        - name: routing-engine
+          image: uav-flight-optimizer/routing-engine:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: ENVIRONMENT_SERVICE_URL
+              value: "http://environment-service:8081"
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: routing-engine
+spec:
+  selector:
+    app: routing-engine
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP

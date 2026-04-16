@@ -1,0 +1,35 @@
+name: Build Containers
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-environment-service:
+    name: Build Environment Service
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t uav-flight-optimizer/environment-service:test ./environment_service
+
+  build-routing-engine:
+    name: Build Routing Engine
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t uav-flight-optimizer/routing-engine:test ./routing_engine
+
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t uav-flight-optimizer/frontend:test ./frontend
