@@ -1,0 +1,61 @@
+uav-flight-optimizer/
+│
+├── .github/                             # Automated CI/CD pipelines
+│   └── workflows/
+│       ├── test-pathfinding.yml         # Unit tests for the A* / Dijkstra algorithms
+│       └── build-containers.yml
+│
+├── environment_service/                 # Go: High-concurrency spatial & weather data fetcher
+│   ├── cmd/
+│   │   └── api/
+│   │       └── main.go                  # Internal gRPC/REST server feeding the Python engine
+│   ├── internal/
+│   │   ├── weather/
+│   │   │   └── wind_vectors.go          # Polls NOAA/OpenWeather to build a 3D wind vector grid
+│   │   ├── topography/
+│   │   │   └── elevation.go             # Parses heavy GeoTIFF/SRTM tiles to calculate slope/altitude
+│   │   └── airspace/
+│   │       └── geofence.go              # Caches FAA no-fly zones and temporary flight restrictions (TFRs)
+│   ├── go.mod
+│   └── Dockerfile
+│
+├── routing_engine/                      # Python + FastAPI: The Physics & Pathfinding Brain
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── routes/
+│   │   │       └── optimize.py          # Accepts Start/End coordinates and drone specs
+│   │   ├── core/
+│   │   │   └── drone_profiles.py        # Mass, frontal area, drag coefficient, battery capacity
+│   │   ├── physics/
+│   │   │   ├── aerodynamics.py          # Calculates drag forces based on airspeed and wind vectors
+│   │   │   └── energy_model.py          # Calculates Joules/second drain based on motor thrust required
+│   │   ├── pathfinding/
+│   │   │   ├── graph_builder.py         # Converts the 3D space into searchable nodes
+│   │   │   └── a_star_3d.py             # Custom A* algorithm weighted by energy consumption, not just distance
+│   │   └── main.py                      # Exposes the final calculated GeoJSON route
+│   ├── requirements.txt                 # Includes networkx, shapely, scipy, fastapi
+│   └── Dockerfile
+│
+├── frontend/                            # React + TypeScript: The Mission Planner
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── MapboxGL.tsx             # Renders the topographical map, geofences, and flight path
+│   │   │   ├── ElevationProfile.tsx     # 2D chart showing the drone's altitude vs. terrain height
+│   │   │   └── BatteryCurve.tsx         # Line graph showing estimated battery drain over the route
+│   │   ├── hooks/
+│   │   │   └── useFlightPlanner.ts      # Manages the drag-and-drop waypoints and API calls
+│   │   ├── App.tsx
+│   │   └── index.tsx
+│   ├── package.json                     # Needs mapbox-gl, turf.js, recharts
+│   └── Dockerfile                       # Multi-stage Nginx build
+│
+├── k8s/                                 # Orchestration for scaling the optimization nodes
+│   ├── environment-service.yaml
+│   ├── routing-engine.yaml
+│   ├── frontend.yaml
+│   ├── redis-cache.yaml                 # Caches frequently requested elevation/weather grids
+│   └── ingress.yaml
+│
+├── docker-compose.yml                   # Local cluster setup
+├── Makefile                             # Build/Run shortcuts
+└── README.md
