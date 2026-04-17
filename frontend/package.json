@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@turf/turf": "^7.0.0",
+    "ajv": "^8.12.0",
     "mapbox-gl": "^3.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
